@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Torneig Triatló Raqueta (Tennis · Pàdel · Pickleball)</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --card-light: #273549;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --gold: #facc15;
+      --silver: #cbd5e1;
+      --green: #22c55e;
+      --red: #ef4444;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background: var(--bg); color: var(--text); line-height: 1.5; padding-bottom: 4rem; }
+    header {
+      background: linear-gradient(135deg, #0284c7, #1e293b);
+      padding: 1.25rem 1rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+    header h1 { font-size: 1.35rem; font-weight: 800; }
+    header p { font-size: 0.85rem; color: #e2e8f0; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 1rem; }
+    .tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+    .tab-btn {
+      background: var(--card); color: var(--muted); border: 1px solid var(--border);
+      padding: 0.6rem 1rem; border-radius: 0.5rem; cursor: pointer; font-weight: 600; font-size: 0.9rem;
+    }
+    .tab-btn.active { background: var(--accent); color: #0f172a; border-color: var(--accent); }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 0.75rem;
+      padding: 1.25rem; margin-bottom: 1.25rem;
+    }
+    .card h2 { font-size: 1.1rem; margin-bottom: 0.75rem; color: var(--accent); }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+    input, select, button {
+      padding: 0.55rem 0.75rem; border-radius: 0.45rem; border: 1px solid var(--border);
+      background: var(--bg); color: var(--text); font-size: 0.9rem;
+    }
+    button.primary { background: var(--accent); color: #0f172a; font-weight: 700; border: none; cursor: pointer; }
+    button.success { background: var(--green); color: #052e16; font-weight: 700; border: none; cursor: pointer; }
+    button.danger { background: var(--red); color: white; font-weight: 600; border: none; cursor: pointer; }
+    button.secondary { background: var(--card-light); color: var(--text); cursor: pointer; }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th, td { padding: 0.6rem 0.5rem; text-align: left; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; }
+    .badge {
+      display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px;
+      font-size: 0.75rem; font-weight: 700;
+    }
+    .b-tenis { background: #15803d; color: #dcfce7; }
+    .b-padel { background: #1d4ed8; color: #dbeafe; }
+    .b-pickleball { background: #b45309; color: #fef3c7; }
+    .b-gold { background: rgba(250, 204, 21, 0.2); color: var(--gold); border: 1px solid var(--gold); }
+    .b-silver { background: rgba(203, 213, 225, 0.2); color: var(--silver); border: 1px solid var(--silver); }
+    .raffle-box {
+      background: var(--card-light); border: 2px dashed var(--accent); border-radius: 0.75rem;
+      padding: 1rem; text-align: center; margin-bottom: 1rem;
+    }
+    .raffle-winner { font-size: 1.5rem; font-weight: 800; color: var(--gold); margin: 0.5rem 0; }
+    .match-card {
+      background: var(--card-light); border: 1px solid var(--border); border-radius: 0.6rem;
+      padding: 0.85rem; margin-bottom: 0.75rem; display: flex; flex-wrap: wrap;
+      justify-content: space-between; align-items: center; gap: 0.75rem;
+    }
+    .score-input { width: 56px; text-align: center; font-weight: 700; }
+    .admin-only { display: none; }
+    body.admin-mode .admin-only { display: inline-flex; }
+    body.admin-mode .admin-block { display: block; }
+    .admin-block { display: none; }
+    .rotation-pill {
+      background: var(--bg); padding: 0.5rem 0.85rem; border-radius: 0.5rem;
+      font-size: 0.85rem; border: 1px solid var(--border); display: inline-block; margin-bottom: 1rem;
+    }
+    .bracket-col { background: var(--card-light); padding: 0.85rem; border-radius: 0.6rem; border: 1px solid var(--border); }
+    .bracket-col h3 { font-size: 0.95rem; margin-bottom: 0.65rem; color: var(--gold); }
+    .bracket-col.silver h3 { color: var(--silver); }
+    .ko-match { background: var(--bg); border: 1px solid var(--border); border-radius: 0.5rem; padding: 0.65rem; margin-bottom: 0.65rem; }
+    .ko-row { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin: 0.25rem 0; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🏆 Torneig Triatló Raqueta</h1>
+    <p>14 Parelles · 15 min/partit · Tennis → Pàdel → Pickleball → Tennis · 3 pts Victòria / 1 pt Derrota</p>
+  </div>
+  <div style="display:flex; gap:0.5rem; align-items:center;">
+    <span id="modeBadge" class="badge b-silver">Mode Espectador</span>
+    <button id="toggleAdminBtn" class="secondary" onclick="toggleAdmin()">Accés Organitzador</button>
+  </div>
+</header>
+
+<div class="container">
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('classificacio', this)">📊 Classificació</button>
+    <button class="tab-btn" onclick="showTab('lligueta', this)">🎲 Lligueta i Sorteig</button>
+    <button class="tab-btn" onclick="showTab('fasefinal', this)">🏅 Fase Final (Or i Plata)</button>
+    <button class="tab-btn admin-only" onclick="showTab('config', this)">⚙️ Parelles i Dades</button>
+  </div>
+
+  <!-- TAB 1: CLASSIFICACIÓ -->
+  <div id="tab-classificacio" class="panel active">
+    <div class="card">
+      <h2>Classificació General (Lligueta)</h2>
+      <p style="font-size:0.82rem; color:var(--muted); margin-bottom:0.75rem;">
+        1r–8è: Fase d'Or (Quarts) · 9è–10è: Fase de Plata (Directe a Semis) · 11è–14è: Fase de Plata (Quarts)
+      </p>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Pos</th>
+              <th>Parella</th>
+              <th>PJ</th>
+              <th>V</th>
+              <th>D</th>
+              <th>🎾 Ten</th>
+              <th>🟦 Pàd</th>
+              <th>🟡 Pic</th>
+              <th>Dif</th>
+              <th>Punts</th>
+              <th>Fase</th>
+            </tr>
+          </thead>
+          <tbody id="standingsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: LLIGUETA I SORTEIG -->
+  <div id="tab-lligueta" class="panel">
+    <div class="rotation-pill">
+      🔄 <strong>Rotació obligatòria:</strong> Tennis ➔ Pàdel ➔ Pickleball ➔ Tennis &nbsp;|&nbsp; ⏱️ <strong>15 minuts</strong> (Empat = <strong>Punt d'Or</strong>)
+    </div>
+
+    <!-- EINA DE SORTEIG (NOMÉS ADMIN) -->
+    <div class="card admin-block">
+      <h2>🎲 Sorteig en Directe i Assignació de Partit</h2>
+      <div class="raffle-box">
+        <p style="font-size:0.85rem; color:var(--muted);">Treu una parella a l'atzar amb partits pendents perquè triï pista, esport i rival:</p>
+        <div id="raffleResult" class="raffle-winner">—</div>
+        <div id="raffleDetail" style="font-size:0.82rem; color:var(--accent); margin-bottom:0.65rem;"></div>
+        <button class="primary" onclick="drawRandomTeam()">🎲 Treure Parella a l'Atzar</button>
+      </div>
+
+      <div class="grid-3" style="margin-bottom:0.75rem;">
+        <div>
+          <label style="font-size:0.8rem; color:var(--muted);">Parella que tria (A)</label><br/>
+          <select id="selTeamA" style="width:100%;" onchange="updateSportOptions()"></select>
+        </div>
+        <div>
+          <label style="font-size:0.8rem; color:var(--muted);">Rival (B)</label><br/>
+          <select id="selTeamB" style="width:100%;"></select>
+        </div>
+        <div>
+          <label style="font-size:0.8rem; color:var(--muted);">Esport i Pista</label><br/>
+          <div style="display:flex; gap:0.4rem;">
+            <select id="selSport" style="flex:1;">
+              <option value="Tennis">🎾 Tennis</option>
+              <option value="Pàdel">🟦 Pàdel</option>
+              <option value="Pickleball">🟡 Pickleball</option>
+            </select>
+            <input id="inpCourt" type="text" placeholder="Pista 1" style="width:90px;" />
+          </div>
+        </div>
+      </div>
+      <button class="success" onclick="createLeagueMatch()">➕ Crear Partit al Quadre</button>
+    </div>
+
+    <div class="card">
+      <h2>Partits de la Lligueta (<span id="matchCount">0</span>/42)</h2>
+      <div id="matchesList"></div>
+    </div>
+  </div>
+
+  <!-- TAB 3: FASE FINAL -->
+  <div id="tab-fasefinal" class="panel">
+    <div class="card admin-block">
+      <h2>Generació dels Quadres Finals</h2>
+      <p style="font-size:0.85rem; color:var(--muted); margin-bottom:0.75rem;">
+        Un cop acabada la lligueta, genera automàticament els creuaments d'Or (1r–8è) i Plata (9è–10è a semis, 11è–14è a quarts).
+      </p>
+      <button class="primary" onclick="generateKnockout()">⚡ Generar / Actualitzar Quadres Or i Plata</button>
+    </div>
+
+    <div class="card">
+      <h2 style="color:var(--gold);">🥇 Fase d'Or (1r al 8è)</h2>
+      <div id="goldBracket" class="grid-3"></div>
+    </div>
+
+    <div class="card">
+      <h2 style="color:var(--silver);">🥈 Fase de Plata (9è al 14è · 9è i 10è directes a Semis)</h2>
+      <div id="silverBracket" class="grid-3"></div>
+    </div>
+  </div>
+
+  <!-- TAB 4: CONFIGURACIÓ (ADMIN) -->
+  <div id="tab-config" class="panel">
+    <div class="card">
+      <h2>Noms de les 14 Parelles</h2>
+      <div id="teamsEditor" class="grid-2" style="margin-bottom:1rem;"></div>
+      <button class="success" onclick="saveTeamNames()">💾 Guardar Noms</button>
+    </div>
+    <div class="card">
+      <h2>Còpia de Seguretat / Exportar Dades</h2>
+      <p style="font-size:0.85rem; color:var(--muted); margin-bottom:0.75rem;">
+        Pots exportar l'estat del torneig en JSON per compartir-lo o carregar-lo en un altre dispositiu.
+      </p>
+      <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+        <button class="primary" onclick="exportJSON()">⬇️ Exportar JSON</button>
+        <button class="secondary" onclick="importJSON()">⬆️ Importar JSON</button>
+        <button class="danger" onclick="resetTournament()">🗑️ Reiniciar Torneig</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ADMIN_PIN = "1234"; // Canvia aquesta contrasenya abans de pujar-ho a GitHub!
+const STORAGE_KEY = "torneig_raqueta_14_v1";
+
+let isAdmin = false;
+let state = loadState();
+
+function defaultState() {
+  const teams = [];
+  for (let i = 1; i <= 14; i++) {
+    teams.push({ id: i, name: `Parella ${i}` });
+  }
+  return { teams, matches: [], knockout: null };
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : defaultState();
+  } catch (e) {
+    return defaultState();
+  }
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  renderAll();
+}
+
+function toggleAdmin() {
+  if (isAdmin) {
+    isAdmin = false;
+    document.body.classList.remove("admin-mode");
+    document.getElementById("modeBadge").textContent = "Mode Espectador";
+    document.getElementById("toggleAdminBtn").textContent = "Accés Organitzador";
+    showTab("classificacio", document.querySelector(".tab-btn"));
+    renderAll();
+    return;
+  }
+  const pin = prompt("Introdueix el PIN d'organitzador:");
+  if (pin === ADMIN_PIN) {
+    isAdmin = true;
+    document.body.classList.add("admin-mode");
+    document.getElementById("modeBadge").textContent = "Mode Organitzador";
+    document.getElementById("modeBadge").className = "badge b-gold";
+    document.getElementById("toggleAdminBtn").textContent = "Sortir Mode Admin";
+    renderAll();
+  } else if (pin !== null) {
+    alert("PIN incorrecte.");
+  }
+}
+
+function showTab(tabId, btn) {
+  document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById("tab-" + tabId).classList.add("active");
+  if (btn) btn.classList.add("active");
+}
+
+function computeStats() {
+  const map = {};
+  state.teams.forEach(t => {
+    map[t.id] = {
+      id: t.id, name: t.name, pj: 0, v: 0, d: 0,
+      pts: 0, pf: 0, pc: 0,
+      sports: { "Tennis": 0, "Pàdel": 0, "Pickleball": 0 }
+    };
+  });
+
+  state.matches.forEach(m => {
+    const a = map[m.teamA];
+    const b = map[m.teamB];
+    if (!a || !b) return;
+    a.sports[m.sport]++;
+    b.sports[m.sport]++;
+
+    if (m.done) {
+      a.pj++; b.pj++;
+      a.pf += m.scoreA; a.pc += m.scoreB;
+      b.pf += m.scoreB; b.pc += m.scoreA;
+
+      const winnerA = m.scoreA > m.scoreB || (m.scoreA === m.scoreB && m.goldenPoint === "A");
+      if (winnerA) {
+        a.v++; a.pts += 3;
+        b.d++; b.pts += 1;
+      } else {
+        b.v++; b.pts += 3;
+        a.d++; a.pts += 1;
+      }
+    }
+  });
+
+  const list = Object.values(map);
+  list.sort((x, y) => {
+    if (y.pts !== x.pts) return y.pts - x.pts;
+    const diffY = y.pf - y.pc;
+    const diffX = x.pf - x.pc;
+    if (diffY !== diffX) return diffY - diffX;
+    if (y.v !== x.v) return y.v - x.v;
+    return x.id - y.id;
+  });
+  return { list, map };
+}
+
+function drawRandomTeam() {
+  const { list } = computeStats();
+  const eligible = list.filter(t => (t.sports["Tennis"] + t.sports["Pàdel"] + t.sports["Pickleball"]) < 6);
+  if (eligible.length === 0) {
+    document.getElementById("raffleResult").textContent = "Totes les parelles ja tenen 6 partits!";
+    document.getElementById("raffleDetail").textContent = "";
+    return;
+  }
+  const chosen = eligible[Math.floor(Math.random() * eligible.length)];
+  document.getElementById("raffleResult").textContent = `🎯 ${chosen.name}`;
+  document.getElementById("raffleDetail").textContent =
+    `Jugats: Tennis (${chosen.sports["Tennis"]}/2) · Pàdel (${chosen.sports["Pàdel"]}/2) · Pickleball (${chosen.sports["Pickleball"]}/2)`;
+  document.getElementById("selTeamA").value = chosen.id;
+  updateSportOptions();
+}
+
+function updateSportOptions() {
+  const { map } = computeStats();
+  const idA = Number(document.getElementById("selTeamA").value);
+  const tA = map[idA];
+  if (!tA) return;
+  const selSport = document.getElementById("selSport");
+  ["Tennis", "Pàdel", "Pickleball"].forEach((sp, idx) => {
+    const count = tA.sports[sp];
+    selSport.options[idx].text = `${sp} (${count}/2)`;
+    selSport.options[idx].disabled = count >= 2;
+  });
+  const firstAvailable = Array.from(selSport.options).find(o => !o.disabled);
+  if (firstAvailable) selSport.value = firstAvailable.value;
+}
+
+function createLeagueMatch() {
+  const teamA = Number(document.getElementById("selTeamA").value);
+  const teamB = Number(document.getElementById("selTeamB").value);
+  const sport = document.getElementById("selSport").value;
+  const court = document.getElementById("inpCourt").value.trim() || "Sense pista";
+
+  if (teamA === teamB) return alert("Una parella no pot jugar contra si mateixa.");
+  const { map } = computeStats();
+  if (map[teamA].sports[sport] >= 2 || map[teamB].sports[sport] >= 2) {
+    return alert(`Una de les dues parelles ja ha jugat els 2 partits de ${sport}.`);
+  }
+
+  state.matches.unshift({
+    id: Date.now(),
+    teamA, teamB, sport, court,
+    scoreA: 0, scoreB: 0, goldenPoint: "", done: false
+  });
+  saveState();
+}
+
+function saveMatchScore(id) {
+  const m = state.matches.find(x => x.id === id);
+  if (!m) return;
+  const sA = Number(document.getElementById(`sA_${id}`).value);
+  const sB = Number(document.getElementById(`sB_${id}`).value);
+  const gp = document.getElementById(`gp_${id}`).value;
+
+  if (sA === sB && !gp) {
+    return alert("En cas d'empat als 15 minuts, selecciona qui ha guanyat el Punt d'Or.");
+  }
+  m.scoreA = sA;
+  m.scoreB = sB;
+  m.goldenPoint = sA === sB ? gp : "";
+  m.done = true;
+  saveState();
+}
+
+function deleteMatch(id) {
+  if (!confirm("Segur que vols eliminar aquest partit?")) return;
+  state.matches = state.matches.filter(x => x.id !== id);
+  saveState();
+}
+
+function generateKnockout() {
+  if (state.knockout && !confirm("Això sobreescriurà els quadres actuals. Continuar?")) return;
+  const { list } = computeStats();
+  const t = (pos) => list[pos - 1] ? list[pos - 1].name : `Posició ${pos}`;
+
+  state.knockout = {
+    gold: {
+      qf: [
+        { id: "g_qf1", label: "Quarts 1 (1r vs 8è)", a: t(1), b: t(8), sa: "", sb: "", sport: "Tennis" },
+        { id: "g_qf2", label: "Quarts 2 (4t vs 5è)", a: t(4), b: t(5), sa: "", sb: "", sport: "Tennis" },
+        { id: "g_qf3", label: "Quarts 3 (2n vs 7è)", a: t(2), b: t(7), sa: "", sb: "", sport: "Tennis" },
+        { id: "g_qf4", label: "Quarts 4 (3r vs 6è)", a: t(3), b: t(6), sa: "", sb: "", sport: "Tennis" }
+      ],
+      sf: [
+        { id: "g_sf1", label: "Semifinal 1", a: "Guanyador Q1", b: "Guanyador Q2", sa: "", sb: "", sport: "Pàdel" },
+        { id: "g_sf2", label: "Semifinal 2", a: "Guanyador Q3", b: "Guanyador Q4", sa: "", sb: "", sport: "Pàdel" }
+      ],
+      final: [
+        { id: "g_f1", label: "FINAL D'OR", a: "Guanyador SF1", b: "Guanyador SF2", sa: "", sb: "", sport: "Pickleball" }
+      ]
+    },
+    silver: {
+      qf: [
+        { id: "s_qf1", label: "Quarts Plata 1 (11è vs 14è)", a: t(11), b: t(14), sa: "", sb: "", sport: "Tennis" },
+        { id: "s_qf2", label: "Quarts Plata 2 (12è vs 13è)", a: t(12), b: t(13), sa: "", sb: "", sport: "Tennis" }
+      ],
+      sf: [
+        { id: "s_sf1", label: "Semifinal Plata 1 (9è vs Q2)", a: t(9), b: "Guanyador QP2", sa: "", sb: "", sport: "Pàdel" },
+        { id: "s_sf2", label: "Semifinal Plata 2 (10è vs Q1)", a: t(10), b: "Guanyador QP1", sa: "", sb: "", sport: "Pàdel" }
+      ],
+      final: [
+        { id: "s_f1", label: "FINAL DE PLATA", a: "Guanyador SF1", b: "Guanyador SF2", sa: "", sb: "", sport: "Pickleball" }
+      ]
+    }
+  };
+  saveState();
+}
+
+function updateKoMatch(tier, round, idx) {
+  const m = state.knockout[tier][round][idx];
+  m.a = document.getElementById(`${m.id}_a`).value;
+  m.b = document.getElementById(`${m.id}_b`).value;
+  m.sa = document.getElementById(`${m.id}_sa`).value;
+  m.sb = document.getElementById(`${m.id}_sb`).value;
+  m.sport = document.getElementById(`${m.id}_sp`).value;
+  saveState();
+}
+
+function renderBracket(containerId, data, tier, isSilver) {
+  const el = document.getElementById(containerId);
+  if (!data) {
+    el.innerHTML = `<p style="color:var(--muted); font-size:0.88rem;">Encara no s'han generat els quadres finals.</p>`;
+    return;
+  }
+  const rounds = [
+    { key: "qf", title: "Quarts de Final" },
+    { key: "sf", title: "Semifinals" },
+    { key: "final", title: "Final" }
+  ];
+  el.innerHTML = rounds.map(r => `
+    <div class="bracket-col ${isSilver ? "silver" : ""}">
+      <h3>${r.title}</h3>
+      ${data[r.key].map((m, idx) => `
+        <div class="ko-match">
+          <div style="font-size:0.75rem; color:var(--muted); margin-bottom:0.35rem; display:flex; justify-content:space-between;">
+            <span>${m.label}</span>
+            <span>${m.sport}</span>
+          </div>
+          ${isAdmin ? `
+            <div class="ko-row">
+              <input id="${m.id}_a" value="${m.a}" style="flex:1; padding:0.3rem;" />
+              <input id="${m.id}_sa" value="${m.sa}" placeholder="-" style="width:42px; text-align:center; padding:0.3rem;" />
+            </div>
+            <div class="ko-row">
+              <input id="${m.id}_b" value="${m.b}" style="flex:1; padding:0.3rem;" />
+              <input id="${m.id}_sb" value="${m.sb}" placeholder="-" style="width:42px; text-align:center; padding:0.3rem;" />
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-top:0.4rem; gap:0.3rem;">
+              <select id="${m.id}_sp" style="padding:0.25rem; font-size:0.78rem;">
+                <option ${m.sport==="Tennis"?"selected":""}>Tennis</option>
+                <option ${m.sport==="Pàdel"?"selected":""}>Pàdel</option>
+                <option ${m.sport==="Pickleball"?"selected":""}>Pickleball</option>
+              </select>
+              <button class="success" style="padding:0.25rem 0.5rem; font-size:0.78rem;" onclick="updateKoMatch('${tier}','${r.key}',${idx})">Guardar</button>
+            </div>
+          ` : `
+            <div class="ko-row"><strong>${m.a}</strong><span>${m.sa || "-"}</span></div>
+            <div class="ko-row"><strong>${m.b}</strong><span>${m.sb || "-"}</span></div>
+          `}
+        </div>
+      `).join("")}
+    </div>
+  `).join("");
+}
+
+function saveTeamNames() {
+  state.teams.forEach(t => {
+    const val = document.getElementById(`team_name_${t.id}`).value.trim();
+    if (val) t.name = val;
+  });
+  saveState();
+  alert("Noms de les parelles actualitzats.");
+}
+
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "torneig-raqueta-dades.json";
+  a.click();
+}
+
+function importJSON() {
+  const raw = prompt("Enganxa aquí el contingut del fitxer JSON exportat:");
+  if (!raw) return;
+  try {
+    state = JSON.parse(raw);
+    saveState();
+    alert("Dades carregades correctament.");
+  } catch (e) {
+    alert("El format JSON no és vàlid.");
+  }
+}
+
+function resetTournament() {
+  if (!confirm("ATENCIÓ: S'esborraran tots els partits i puntuacions. Continuar?")) return;
+  state = defaultState();
+  saveState();
+}
+
+function renderAll() {
+  const { list, map } = computeStats();
+
+  // Standings
+  const tbody = document.getElementById("standingsBody");
+  tbody.innerHTML = list.map((t, i) => {
+    const pos = i + 1;
+    const diff = t.pf - t.pc;
+    const phaseBadge = pos <= 8
+      ? `<span class="badge b-gold">Or (Quarts)</span>`
+      : pos <= 10
+        ? `<span class="badge b-silver">Plata (Semis)</span>`
+        : `<span class="badge b-silver">Plata (Quarts)</span>`;
+    return `
+      <tr>
+        <td><strong>${pos}</strong></td>
+        <td><strong>${t.name}</strong></td>
+        <td>${t.pj}/6</td>
+        <td>${t.v}</td>
+        <td>${t.d}</td>
+        <td>${t.sports["Tennis"]}/2</td>
+        <td>${t.sports["Pàdel"]}/2</td>
+        <td>${t.sports["Pickleball"]}/2</td>
+        <td>${diff >= 0 ? "+" + diff : diff}</td>
+        <td><strong style="color:var(--accent); font-size:1rem;">${t.pts}</strong></td>
+        <td>${phaseBadge}</td>
+      </tr>
+    `;
+  }).join("");
+
+  // Selects
+  const selA = document.getElementById("selTeamA");
+  const selB = document.getElementById("selTeamB");
+  const curA = selA.value;
+  const curB = selB.value;
+  const opts = state.teams.map(t => `<option value="${t.id}">${t.name}</option>`).join("");
+  selA.innerHTML = opts;
+  selB.innerHTML = opts;
+  if (curA) selA.value = curA;
+  if (curB) selB.value = curB;
+  updateSportOptions();
+
+  // Matches
+  document.getElementById("matchCount").textContent = state.matches.length;
+  const mList = document.getElementById("matchesList");
+  if (state.matches.length === 0) {
+    mList.innerHTML = `<p style="color:var(--muted); font-size:0.88rem;">Encara no s'ha sortejat cap partit de lligueta.</p>`;
+  } else {
+    mList.innerHTML = state.matches.map(m => {
+      const nA = map[m.teamA]?.name || "Parella A";
+      const nB = map[m.teamB]?.name || "Parella B";
+      const spClass = m.sport === "Tennis" ? "b-tenis" : m.sport === "Pàdel" ? "b-padel" : "b-pickleball";
+      return `
+        <div class="match-card">
+          <div>
+            <span class="badge ${spClass}">${m.sport}</span>
+            <span style="font-size:0.8rem; color:var(--muted); margin-left:0.4rem;">📍 ${m.court}</span>
+            <div style="margin-top:0.35rem; font-size:0.95rem;">
+              <strong>${nA}</strong> <span style="color:var(--muted);">vs</span> <strong>${nB}</strong>
+              ${m.done && m.goldenPoint ? `<span class="badge b-gold" style="margin-left:0.4rem;">Punt d'Or: ${m.goldenPoint === "A" ? nA : nB}</span>` : ""}
+            </div>
+          </div>
+          <div>
+            ${isAdmin ? `
+              <div style="display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap;">
+                <input id="sA_${m.id}" type="number" min="0" value="${m.scoreA}" class="score-input" />
+                <span>-</span>
+                <input id="sB_${m.id}" type="number" min="0" value="${m.scoreB}" class="score-input" />
+                <select id="gp_${m.id}" title="Guanyador Punt d'Or en cas d'empat">
+                  <option value="">Sense empat</option>
+                  <option value="A" ${m.goldenPoint==="A"?"selected":""}>Punt d'Or: ${nA}</option>
+                  <option value="B" ${m.goldenPoint==="B"?"selected":""}>Punt d'Or: ${nB}</option>
+                </select>
+                <button class="success" onclick="saveMatchScore(${m.id})">✓</button>
+                <button class="danger" onclick="deleteMatch(${m.id})">✕</button>
+              </div>
+            ` : `
+              <div style="font-size:1.1rem; font-weight:800;">
+                ${m.done ? `${m.scoreA} - ${m.scoreB}` : `<span style="font-size:0.8rem; color:var(--accent);">En joc / Pendent</span>`}
+              </div>
+            `}
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  // Knockouts
+  renderBracket("goldBracket", state.knockout?.gold, "gold", false);
+  renderBracket("silverBracket", state.knockout?.silver, "silver", true);
+
+  // Teams Editor
+  document.getElementById("teamsEditor").innerHTML = state.teams.map(t => `
+    <div style="display:flex; align-items:center; gap:0.5rem;">
+      <span style="width:28px; color:var(--muted); font-size:0.85rem;">#${t.id}</span>
+      <input id="team_name_${t.id}" value="${t.name}" style="flex:1;" />
+    </div>
+  `).join("");
+}
+
+renderAll();
+</script>
+</body>
+</html>
